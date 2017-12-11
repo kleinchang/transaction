@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:bind="http://schemas.android.com/apk/res-auto">
+    <data>
+        <import type="android.view.View" />
+        <variable name="retryListener"
+            type="android.view.View.OnClickListener" />
+        <variable
+            name="viewModel"
+            type="com.commonwealth.banking.ui.TransactionViewModel" />
+    </data>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/refresh_pulldown"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        bind:refreshing="@{viewModel.refreshing}">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/list"
+            android:visibility="@{viewModel.showContent ? View.VISIBLE : View.GONE}"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            bind:transaction_data="@{viewModel.mTransactionData}"/>
+
+    </android.support.v4.widget.SwipeRefreshLayout>
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:indeterminateTint="@color/colorPrimary"
+        android:layout_gravity="center"
+        android:visibility="@{viewModel.loading ? View.VISIBLE : View.GONE}" />
+
+    <include
+        android:id="@+id/error"
+        layout="@layout/error_retry"
+        bind:retryListener="@{retryListener}"
+        android:visibility="@{viewModel.error ? View.VISIBLE : View.GONE}"/>
+
+</FrameLayout>
+
+</layout>

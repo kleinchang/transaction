@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">CommBank</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="google_maps_key" translatable="false" templateMergeStrategy="preserve">AIzaSyDd19vwta5j69CXFBR1_cOYqJkCL0Dc_eg</string>
+</resources>
