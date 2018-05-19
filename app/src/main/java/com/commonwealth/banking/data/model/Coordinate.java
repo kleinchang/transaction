@@ -13,4 +13,5 @@ public class Coordinate {
     public double getLng() {
         return lng;
     }
+    
 }
