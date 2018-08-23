@@ -1,0 +1,77 @@
+language: android
+sudo: false
+jdk: oraclejdk8
+env:
+  global:
+  - ANDROID_API_LEVEL=26
+  - EMULATOR_API=19
+  - ANDROID_BUILD_TOOLS_VERSION=26.0.2
+  - ANDROID_ABI=armeabi-v7a
+  - ANDROID_TAG=google_apis
+  - ADB_INSTALL_TIMEOUT=5
+  - secure: s/BiWTX32CVhMhenIrQeJLK2F/msPmGLG5E6Bo4C70AiitGHv64D/di1YkOkFwzlBUHJ6AeC99sJn83gMisKOKsmn8hyffjb3C03UeMMOL89GExjneDpnAi7mwiZrZqnljdStI9UuZPB0BP6Mr56ttJsHdD5RV+makdqiVa4WZCBGps1nQBxPC3yo2xnlZuIyxd+W6CJA7gvj7aoT42Kv9hGMklxxZU+CrC7zZ3Xkx+JwWZox3YFMI2MvjjdXISIz6+DM5SlkpPlc3+APzZgbw7d2CZjwPIS31e1sCgm0pFBNP/VyBBEAe2YH0ML2A93SaNOKjtAluf2KjHIIVo0fPEaq6FdW9Y4N0iy6mIuaLSDkNA1GF/AtajWYSZtnllH8eLggOUwsrLr4Jya725kWt4cGoADsZy/+q3RpOsBZh+6iHVilWp9i6hF24TwHow5ZZEsnZDqWGnXVug6O+f4Lw21panx9iW7ZdoqcCJXLuhXGJSgYJIX/JdQKHkxPrJCG6YPruVj88rszWmCkxz7BRvrJ39gQAYogbNnFShKrAjo+8PmzC7yxdYaAzQLZQhUTrvsCswhlwJ5UJBePrcm5lXPSE7aeNKmaWnlROGq1ag8IKKZp0ztaM+zxVTy4TC/X+WbLj2MZxJXEwaoXdW8exrNL5Y90uQ2FJeLVk0ij6o=
+  - secure: lfhyIRA4sLNeyVOgQyZ3T5B9aIVkBvoS0AnDkVjTb8tEUAkx7N3tcpro25JIRyhXauswrjtyBooIl9vzZwQv5MIDDTMGwX+jXdW5Duh183bIF/8S3P34hgS6kblSeLFgp2IVCZd3jr1T2xrb2rpFdTwyGasTVSmNF5d0ZwjT0ULTrvPeQeWUftF5/H3b9w72zuSjkSuJ4E0jH4cffX7kfPl1dgN3Y7xgDZS0ObSIo5JF+JQf+CuJhD3G2Q/nBRBwsk9SU7pK94gOVv8WpGZ9Tk7W8rGijgNV7E8kRWAmDOGy37q1TuLsrkxIq2WEoIT+e3Qa8NOBH/z4BVP/gkci5LCxKbNTtEBQimQdl7m2GDKaxgoUX8cvbKdEv/uvrtNLYSObh28ZA+k+iSzevt14Jn2jYccE12fHvvT38ThutDqXcIeFkWjZ6NGXbfQitedQxjG8jks9LhZyvIGhfVrmQvbMHJ/exL+LInX/tzgMCOhb/nUQfxVEd1lQ9TZM01n1MONL7EsDx/Nj8aHIWldOKzrjMUPJ1UXrL95OgZ85yko9lQh4E26zTUJMpYAJbWuLKRHtXiCl3xghVcZnmJR8i5zj8SWKQ6HJWa+cRrsA/zXcosdkGvCZUM8bVCLJ6ERAI2FIUT1p04UG1n1RQn04QEOAvCk6CjGPj39yFb6zleo=
+before_install:
+- yes | sdkmanager "platforms;android-26"
+- echo yes | android update sdk --all --filter build-tools-$ANDROID_BUILD_TOOLS_VERSION --no-ui --force
+- mkdir "$ANDROID_HOME/licenses" || true
+- echo -e "\nd56f5187479451eabf01fb78af6dfcb131a6481e" > "$ANDROID_HOME/licenses/android-sdk-license"
+- openssl aes-256-cbc -K $encrypted_f5f18f718ebf_key -iv $encrypted_f5f18f718ebf_iv -in app/todoapp.jks.enc -out app/todoapp.jks -d
+
+before_script:
+- echo no | android create avd --force -n test -t android-$EMULATOR_API --abi google_apis/$ANDROID_ABI
+- emulator -avd test -no-window &
+- android-wait-for-emulator
+- adb shell settings put global window_animation_scale 0 &
+- adb shell settings put global transition_animation_scale 0 &
+- adb shell settings put global animator_duration_scale 0 &
+- adb shell input keyevent 82 &
+
+android:
+  licenses:
+  - android-sdk-preview-license-.+
+  - android-sdk-license-.+
+  - google-gdk-license-.+
+  components:
+  - tools
+  - platform-tools
+  - android-$ANDROID_API
+  - android-24
+  - android-$EMULATOR_API
+  - build-tools-$ANDROID_BUILD_TOOLS_VERSION
+  - android-$ANDROID_API_LEVEL
+  - extra-android-support
+  - extra-google-google_play_services
+  - extra-google-m2repository
+  - extra-android-m2repository
+  - addon-google_apis-google-$EMULATOR_API
+  - addon-google_apis-google-$ANDROID_API_LEVEL
+  - sys-img-$ANDROID_ABI-google_apis-$EMULATOR_API
+  - sys-img-$ANDROID_ABI-google_apis-$ANDROID_API_LEVEL
+script:
+# - "./gradlew clean assemble"
+- "./gradlew clean assemble connectedCheck -PdisablePreDex --stacktrace"
+
+before_deploy:
+- cp $TRAVIS_BUILD_DIR/app/todoapp.jks $HOME
+- cd app/build/outputs/apk/release/
+- jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/todoapp.jks -storepass $storepass -keypass $keypass app-release-unsigned.apk todoapp_private
+# Verification
+- jarsigner -verify app-release-unsigned.apk
+- "${ANDROID_HOME}/build-tools/26.0.2/zipalign -v 4 app-release-unsigned.apk app-release.apk"
+- cd ../../ 
+- mv apk/ apk-transaction-$TRAVIS_BUILD_NUMBER-$TRAVIS_COMMIT/
+- mv logs/ logs-transaction-$TRAVIS_BUILD_NUMBER-$TRAVIS_COMMIT/
+
+deploy:
+  provider: s3
+  access_key_id: AKIAJJALV6EMTLSWWH5Q
+  secret_access_key:
+    secure: uX6M9TWFnAiH/bunc5Uzbm6Al208uDqGaDjP0xczAXi1HIBhSM2GaIkbkQ4jJW1hn6UDcAzDmE8bgCRZidEcMM9Fjp7uVruoHBQ4XIzKYr80Z0dSKvtydR9G3jMo6gxgZMP/dJblX9fjtoALBcphW4ZNV6bt8vfwV8dv+kbtC+zArxfgbqM5UMBmYpAlleVqK2183e69vQaPw67w+bOrIHJ+Wm28xWHzXr6CFtsG4+TwX8hWfMsa2Jm4ZjILgFk/EC6OCQoCyaLNz0Hz7mHDzDxavrd/JkmkLRYvjSVk8LPQs7aXJwt1OZNIuP7mGq5pbBFaOwOHYht9zAV2UN0x/J+IK497QLXhyxX30cfFRFz7M+K2KZVFkff2i6j29m51N+JKO4MQn2nJqCTDxy1nvQABO41yqTR+76DQurg4U5uf+RUKdCuOOs+a9p/hTau4W7bzMgMFDIl7tJy1wpZwhU4L3UwZblwtt2mjGh7imFgsZm1lsnt+Qh65Gt+Efjeo1QopGFKavYfhfXr3FR7FTRXXJSVclJzHrq3yVeFVyeMe0g1txuueYl2ovuPa0s2EK0ON3fw+QYNSzNZMw4epIgh7yMfuBDeT+LVmNNLQDgJFkRVM8M2bh3kABDHVhhKbNKMjh7uojIHZgRKMPILS684jxyJOtPo8oqeY51l0UZY=
+  bucket: travis-apk
+  skip_cleanup: true
+  # local-dir: app/build/outputs/apk/
+  # acl: ''
+  on:
+    repo: kleinchang/transaction
+    branch: ci
