@@ -5,11 +5,4 @@ This project was compiled with Android Gradle plugin 3.0.0, which requires Gradl
 
 ### Testing ###
 
-By setting different build variants, we can choose mock (MockTransactionData) or prod (NetworkTransactionData) as data source.
-Espresso test is under app/src/androidTestProd/ or app/src/androidMock/, depending on the data sources we choose. 
-This project is architected using MVVM pattern. Testing of ViewModel and Data (Repository) are under app/src/test/.
-
-
-### Who do I talk to? ###
-
-Please also feel free to contact kleinchang@gmail.com for technical discussion. Would be more than happy to help clarify any technical issue such as project compilation, functionality, testing, etc.
+There are two build variants for mock (MockTransactionData) or prod (NetworkTransactionData) data source. Unit test cases are under app/src/test/, and UI test cases are under app/src/androidTestProd/.
